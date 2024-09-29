@@ -1,8 +1,14 @@
 #!/bin/bash
 
+set -o errexit
+
 CONFIG_DIR="${HOME}/.daily"
 CONFIG_FILE_PATH="${CONFIG_DIR}/config"
 KEY_SAVE_DIR="key_save_dir"
+
+# Argument
+INITIALIZE="initialize"
+SET_DIR="set_dir"
 
 # function related to open file
 
@@ -14,7 +20,7 @@ function start_edit() {
 
     make_file_if_not_exist ${file_path}
 
-    # Open file 
+    # Open file
     # If EDITOR is not set, vim is used as the default editor
     ${EDITOR:-vim} ${file_path}
 }
@@ -25,7 +31,7 @@ function get_save_dir() {
 }
 
 function validate_save_dir() {
-    if [ ! -d $1 ]; then
+    if [ -z $1 ] || [ ! -d $1 ] ; then
       echo "Please set the save directory."
       exit 1
     fi
@@ -72,9 +78,9 @@ function make_config_file() {
 
 if [ $# -eq 0 ]; then
    start_edit
-elif [ "$1" = "init" ]; then
+elif [ "$1" = ${INITIALIZE} ]; then
     make_config_file
-elif [ "$1" = "set_dir" ]; then
+elif [ "$1" = ${SET_DIR} ]; then
     set_save_dir_if_valid $2
 else
     echo "Invalid argument"
