@@ -1,16 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -o errexit
 
 CONFIG_DIR="${HOME}/.daily"
 CONFIG_FILE_PATH="${CONFIG_DIR}/config"
 KEY_SAVE_DIR="key_save_dir"
+KEY_EDITOR="key_editor"
 
-# Argument
+# Arguments
 INITIALIZE="initialize"
 SET_DIR="set_dir"
+SET_EDITOR="set_editor"
 
-# function related to open file
+# Usable editors
+editors=("vim" "nvim" "nano" "code")
+
+# ------------------------------
+# Functions related to open file
+# ------------------------------
 
 function start_edit() {
     local save_dir=$(get_save_dir)
@@ -22,7 +29,8 @@ function start_edit() {
 
     # Open file
     # If EDITOR is not set, vim is used as the default editor
-    ${EDITOR:-vim} ${file_path}
+    local editor=$(get_editor)
+    ${editor:-vim} ${file_path}
 }
 
 function get_save_dir() {
@@ -43,7 +51,14 @@ function make_file_if_not_exist() {
   fi
 }
 
-# function related to set directory
+function get_editor() {
+  # Get the editor from config file
+  echo $(cat ${CONFIG_FILE_PATH} | grep ${KEY_EDITOR} | cut -d'=' -f2)
+}
+
+# ------------------------------
+# Functions related to set save directory
+# ------------------------------
 
 function set_save_dir_if_valid() {
   if [ $# -eq 0 ]; then
@@ -62,7 +77,32 @@ function set_save_dir() {
   sed -i '' "s|^${KEY_SAVE_DIR}=.*|${KEY_SAVE_DIR}=$1|" "${CONFIG_FILE_PATH}"
 }
 
-# function related to initialize
+# ------------------------------
+# Functions related to set editor
+# Could not use shell variable in sub shell,
+# so I made two functions to set editor.
+# ------------------------------
+
+function set_editor_if_valid() {
+  if [ $# -eq 0 ]; then
+    echo "Please enter the editor."
+    exit 1
+  elif [[ ! ${editors[*]} =~ $1 ]]; then
+    echo "Invalid editor. Please enter the valid editor."
+    exit 1
+  else
+    set_editor $1
+  fi
+}
+
+function set_editor() {
+  # Set the editor in config file
+  sed -i '' "s|^${KEY_EDITOR}=.*|${KEY_EDITOR}=$1|" "${CONFIG_FILE_PATH}"
+}
+
+# ------------------------------
+# Functions related to initialize
+# ------------------------------
 
 function make_config_file() {
   # Make config file in /.daily
@@ -70,11 +110,13 @@ function make_config_file() {
     mkdir ${CONFIG_DIR}
     touch "${CONFIG_FILE_PATH}"
     echo "${KEY_SAVE_DIR}=" >> "${CONFIG_FILE_PATH}"
+    echo "${KEY_EDITOR}=" >> "${CONFIG_FILE_PATH}"
   else
     echo "Already initialized. ${CONFIG_FILE_PATH} exists."
   fi
 }
 
+# ------------------------------
 
 if [ $# -eq 0 ]; then
    start_edit
@@ -82,6 +124,8 @@ elif [ "$1" = ${INITIALIZE} ]; then
     make_config_file
 elif [ "$1" = ${SET_DIR} ]; then
     set_save_dir_if_valid $2
+elif [ "$1" = ${SET_EDITOR} ]; then
+    set_editor_if_valid $2
 else
     echo "Invalid argument"
     exit 1
