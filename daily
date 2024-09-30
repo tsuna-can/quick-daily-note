@@ -101,6 +101,24 @@ function make_config_file() {
 }
 
 # ------------------------------
+# Function to show help
+# ------------------------------
+function usage() {
+cat <<EOF
+Usage: daily <Option> 
+  
+Options:
+  -h | --help   show this help message
+  -initialize   initialize the config file
+  -set-dir      set the save directory
+  -set-editor   set the editor
+EOF
+}
+
+
+# ------------------------------
+# Main
+# ------------------------------
 
 # Source config file
 if [[ -e "${RC_FILE_PATH}" ]]; then
@@ -115,8 +133,11 @@ elif [ "$1" = ${SET_DIR} ]; then
     set_save_dir_if_valid $2
 elif [ "$1" = ${SET_EDITOR} ]; then
     set_editor_if_valid $2
+elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    usage;
+    exit 0
 else
-    echo "Invalid argument"
+    echo "Invalid argument. Use -h or --help to see the help."
     exit 1
 fi
 

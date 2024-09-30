@@ -22,5 +22,4 @@ daily
 ## TODO
 - Divide shell script
 - Use symbolic link instead of placing shell script
-- Add help message
 
