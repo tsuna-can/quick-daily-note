@@ -1,6 +1,6 @@
 # Quick-daily-note
-A simple note maker/opener that creates a new note for each day.  
-You can create and start editing note via `daily` command.
+A simple tool for creating and opening daily notes.  
+You can create and start editing note in your favorite editor by `daily` command.
 
 ## Installation
 ```
@@ -9,17 +9,17 @@ make install
 
 ## Usage
 ```
-## Set directory to store notes
-daily -set-dir <path>
+# Set directory to store notes
+$ daily -set-dir <path>
 
-## Set editor to edit notes (not mandatory)
-daily -set-editor <editor>
+# Set editor to edit notes (not mandatory)
+$ daily -set-editor <editor>
 
-## Create and start editing note
-daily
+# Create and start editing note
+$ daily
 ```
 
-## TODO
+## ToDo
 - Divide shell script
 - Use symbolic link instead of placing shell script
 
