@@ -2,15 +2,14 @@
 
 set -o errexit
 
-CONFIG_DIR="${HOME}/.daily"
-CONFIG_FILE_PATH="${CONFIG_DIR}/config"
-KEY_SAVE_DIR="key_save_dir"
-KEY_EDITOR="key_editor"
+RC_FILE_PATH="${HOME}/.dailyrc"
+ENV_DIR="DAILY_DIR"
+ENV_EDITOR="DAILY_EDITOR"
 
 # Arguments
-INITIALIZE="initialize"
-SET_DIR="set_dir"
-SET_EDITOR="set_editor"
+INITIALIZE="-initialize"
+SET_DIR="-set-dir"
+SET_EDITOR="-set-editor"
 
 # Usable editors
 editors=("vim" "nvim" "nano" "code")
@@ -20,26 +19,19 @@ editors=("vim" "nvim" "nano" "code")
 # ------------------------------
 
 function start_edit() {
-    local save_dir=$(get_save_dir)
-    local file_path="${save_dir}/$(date +"%Y%m%d").md"
+    validate_save_dir
 
-    validate_save_dir ${save_dir}
+    local file_path="${DAILY_DIR}/$(date +"%Y%m%d").md"
 
     make_file_if_not_exist ${file_path}
 
     # Open file
     # If EDITOR is not set, vim is used as the default editor
-    local editor=$(get_editor)
-    ${editor:-vim} ${file_path}
-}
-
-function get_save_dir() {
-  # Get the save directory from config file
-  echo $(cat ${CONFIG_FILE_PATH} | grep ${KEY_SAVE_DIR} | cut -d'=' -f2)
+    ${DAILY_EDITOR:-vim} ${file_path}
 }
 
 function validate_save_dir() {
-    if [ -z $1 ] || [ ! -d $1 ] ; then
+    if [ -z ${DAILY_DIR} ] || [ ! -d ${DAILY_DIR} ] ; then
       echo "Please set the save directory."
       exit 1
     fi
@@ -49,11 +41,6 @@ function make_file_if_not_exist() {
   if [ ! -e $1 ]; then
     touch $1
   fi
-}
-
-function get_editor() {
-  # Get the editor from config file
-  echo $(cat ${CONFIG_FILE_PATH} | grep ${KEY_EDITOR} | cut -d'=' -f2)
 }
 
 # ------------------------------
@@ -74,13 +61,11 @@ function set_save_dir_if_valid() {
 
 function set_save_dir() {
   # Set the save directory in config file
-  sed -i '' "s|^${KEY_SAVE_DIR}=.*|${KEY_SAVE_DIR}=$1|" "${CONFIG_FILE_PATH}"
+  sed -i '' "s|^export ${ENV_DIR}=.*|export ${ENV_DIR}=$1|" "${RC_FILE_PATH}"
 }
 
 # ------------------------------
 # Functions related to set editor
-# Could not use shell variable in sub shell,
-# so I made two functions to set editor.
 # ------------------------------
 
 function set_editor_if_valid() {
@@ -97,7 +82,7 @@ function set_editor_if_valid() {
 
 function set_editor() {
   # Set the editor in config file
-  sed -i '' "s|^${KEY_EDITOR}=.*|${KEY_EDITOR}=$1|" "${CONFIG_FILE_PATH}"
+  sed -i '' "s|^export ${ENV_EDITOR}=.*|export ${ENV_EDITOR}=$1|" "${RC_FILE_PATH}"
 }
 
 # ------------------------------
@@ -105,21 +90,25 @@ function set_editor() {
 # ------------------------------
 
 function make_config_file() {
-  # Make config file in /.daily
-  if [ ! -e ${CONFIG_FILE_PATH} ]; then
-    mkdir ${CONFIG_DIR}
-    touch "${CONFIG_FILE_PATH}"
-    echo "${KEY_SAVE_DIR}=" >> "${CONFIG_FILE_PATH}"
-    echo "${KEY_EDITOR}=" >> "${CONFIG_FILE_PATH}"
+  # Make config file in ~/.dailyrc
+  if [ ! -e ${RC_FILE_PATH} ]; then
+    touch "${RC_FILE_PATH}"
+    echo "export ${ENV_DIR}=" >> "${RC_FILE_PATH}"
+    echo "export ${ENV_EDITOR}=" >> "${RC_FILE_PATH}"
   else
-    echo "Already initialized. ${CONFIG_FILE_PATH} exists."
+    echo "Already initialized. ${RC_FILE_PATH} exists."
   fi
 }
 
 # ------------------------------
 
+# Source config file
+if [[ -e "${RC_FILE_PATH}" ]]; then
+  source "${RC_FILE_PATH}"
+fi
+
 if [ $# -eq 0 ]; then
-   start_edit
+    start_edit
 elif [ "$1" = ${INITIALIZE} ]; then
     make_config_file
 elif [ "$1" = ${SET_DIR} ]; then

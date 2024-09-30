@@ -3,7 +3,9 @@ PREFIX = /usr/local
 
 install:
 	sudo install $(BIN) $(PREFIX)/bin/
-	daily initialize
+	daily -initialize
 
 uninstall:
 	sudo rm $(PREFIX)/bin/$(BIN)
+	rm ${HOME}/.dailyrc
+

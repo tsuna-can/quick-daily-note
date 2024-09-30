@@ -10,10 +10,10 @@ make install
 ## Usage
 ```
 ## Set directory to store notes
-daily set_dir <path>
+daily -set-dir <path>
 
 ## Set editor to edit notes (not mandatory)
-daily set_editor <editor>
+daily -set-editor <editor>
 
 ## Create and start editing note
 daily
